@@ -1,8 +1,9 @@
+import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
 
-import { userGoogleTokens } from '@rs/db/schema'
+import { channelPermissions, userGoogleTokens } from '@rs/db/schema'
 
 import type { HonoEnv } from '../types'
 import { getBearerToken, extractAppRole } from '../lib/auth'
@@ -58,6 +59,15 @@ authRouter.post('/google', zValidator('json', googleAuthSchema), async (c) => {
     email: result.user.email,
     role: extractAppRole(result.roles, c.env.RS_OFFICE_APP_ENV_ID),
     image: result.google.picture ?? null,
+  }
+
+  if (!user.role.split(',').includes('admin')) {
+    const perms = await db.query.channelPermissions.findMany({
+      where: eq(channelPermissions.userId, user.id),
+    })
+    if (perms.length === 0) {
+      return c.json({ error: 'Unauthorized. Please contact your administrator to get channel access.' }, 403)
+    }
   }
 
   let contacts: Awaited<ReturnType<typeof fetchGoogleContacts>> = []

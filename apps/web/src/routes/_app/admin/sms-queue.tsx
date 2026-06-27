@@ -52,6 +52,7 @@ function SmsQueuePage() {
     onSuccess: () => {
       setDeleteTarget(null)
       void queryClient.invalidateQueries({ queryKey: ['admin', 'sms-queue'] })
+      void queryClient.invalidateQueries({ queryKey: ['messages'] })
     },
   })
 

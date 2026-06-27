@@ -59,9 +59,9 @@ const ROLE_LABELS: Record<string, string> = {
 }
 
 const ROLE_DESCRIPTIONS: Record<string, string> = {
-  reader: 'Can only read SMS',
-  sender: 'Can read and send SMS',
-  manager: 'Can read, send, and manage channel settings',
+  reader: 'Read-only access to messages',
+  sender: 'Read-only access to messages',
+  manager: 'Read-only access to messages, can manage channel settings',
 }
 
 export const Route = createFileRoute('/_app/channels/$channelId/settings')({

@@ -6,11 +6,8 @@ import { channelPermissions } from '@rs/db/schema'
 import type { HonoEnv } from '../types'
 
 function permissionLevel(p: string): number {
-  if (p === 'manager') return 3
-  if (p === 'sender' || p === 'readwrite') return 2
-  // reader, read, write (write-only was a legacy concept, treated as sender)
-  if (p === 'write') return 2
-  return 1
+  if (p === 'readwrite' || p === 'write') return 2
+  return 1 // reader, sender, manager, read
 }
 
 export function requireChannelPermission(required: 'read' | 'write' | 'manage') {
