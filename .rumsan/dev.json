@@ -1,0 +1,23 @@
+{
+  "servers": [
+    {
+      "id": "alxw6qay",
+      "command": "cd apps/api && pnpm dev",
+      "port": 9510,
+      "subdomain": "smpp-api"
+    },
+    {
+      "id": "fqarv80p",
+      "command": "cd apps/web && pnpm dev",
+      "port": 9515,
+      "subdomain": "smpp"
+    },
+    {
+      "id": "7rvu19yq",
+      "name": "SMPP Gateway",
+      "command": "cd apps/smpp && pnpm dev",
+      "port": 9511,
+      "subdomain": null
+    }
+  ]
+}

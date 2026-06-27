@@ -1,0 +1,7 @@
+{
+  "name": "@rs/tsconfig",
+  "private": true,
+  "files": [
+    "*.json"
+  ]
+}

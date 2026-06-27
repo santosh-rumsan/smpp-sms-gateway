@@ -1,0 +1,5 @@
+- Create a D1 database: cd apps/api && npx wrangler d1 create smpp-sms
+- Update database_id in apps/api/wrangler.toml
+- Run pnpm db:migrate to apply schema
+- Set up .env files with Google OAuth and RS Office credentials
+- Run pnpm dev to start all apps

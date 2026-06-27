@@ -1,0 +1,12 @@
+{
+  "dev_command": "pnpm dev",
+  "dev_port": null,
+  "env_vars": {},
+  "hooks": {
+    "pre_start": "",
+    "post_start": "",
+    "pre_stop": "",
+    "post_stop": ""
+  },
+  "preset_commands": []
+}

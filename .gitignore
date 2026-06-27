@@ -1,0 +1,12 @@
+.env
+.env.local
+node_modules
+dist
+.turbo
+.cache
+.output
+.wrangler
+.dev.vars
+**/.vitepress/cache
+**/.vitepress/dist
+*.tsbuildinfo

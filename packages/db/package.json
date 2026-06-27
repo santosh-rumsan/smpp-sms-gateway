@@ -1,0 +1,26 @@
+{
+  "name": "@rs/db",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema/index.ts"
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "pnpm --dir ../../apps/api exec wrangler d1 migrations apply DB --local --config wrangler.toml",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "drizzle-orm": "catalog:",
+    "drizzle-zod": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "catalog:",
+    "@rs/tsconfig": "workspace:*",
+    "drizzle-kit": "catalog:",
+    "typescript": "catalog:"
+  }
+}

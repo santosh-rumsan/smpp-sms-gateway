@@ -1,0 +1,7 @@
+name = "smpp-sms-web"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+# Set VITE_API_URL via the Cloudflare Pages dashboard (Settings → Environment variables)
+# before redeploying so the client bundle is built with the correct API URL.

@@ -1,0 +1,27 @@
+{
+  "name": "@rs/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --ip 0.0.0.0 --port 9510",
+    "deploy": "wrangler deploy",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "catalog:",
+    "@paralleldrive/cuid2": "catalog:",
+    "@rs/db": "workspace:*",
+    "@rs/validators": "workspace:*",
+    "@rumsan/user-sdk": "^0.1.0",
+    "drizzle-orm": "catalog:",
+    "hono": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "catalog:",
+    "@rs/tsconfig": "workspace:*",
+    "typescript": "catalog:",
+    "wrangler": "catalog:"
+  }
+}

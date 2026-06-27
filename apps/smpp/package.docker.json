@@ -1,0 +1,10 @@
+{
+  "name": "smpp-gateway",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@hono/node-server": "^1.14.1",
+    "hono": "^4.7.11",
+    "smpp": "0.6.0-rc.4"
+  }
+}

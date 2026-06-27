@@ -1,0 +1,23 @@
+name = "smpp-sms-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+RS_OFFICE_URL = "https://rsoffice-users-api.rumsan.xyz"
+
+# Secrets (set via: wrangler secret put <KEY>):
+#   RS_OFFICE_APP_ID
+#   RS_OFFICE_APP_ENV_ID
+#   RS_OFFICE_APP_PRIVATE_KEY
+#   GOOGLE_CLIENT_ID
+#   GOOGLE_CLIENT_SECRET
+
+[[d1_databases]]
+binding = "DB"
+database_name = "smpp-sms"
+database_id = "2107a59e-88d5-480f-a526-aa8e1e63144a"
+migrations_dir = "../../packages/db/migrations"
+
+[dev]
+port = 9510

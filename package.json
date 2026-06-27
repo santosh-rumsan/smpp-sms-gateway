@@ -1,0 +1,38 @@
+{
+  "name": "rumsan-smpp-sms",
+  "private": true,
+  "engines": {
+    "node": "^23.7.0",
+    "pnpm": "^10.19.0"
+  },
+  "packageManager": "pnpm@10.19.0",
+  "scripts": {
+    "build": "turbo run build",
+    "clean:workspaces": "turbo run clean",
+    "db:generate": "dotenv -e .env -- pnpm --filter @rs/db db:generate",
+    "db:migrate": "dotenv -e .env -- pnpm --filter @rs/db db:migrate",
+    "dev": "turbo watch dev --continue",
+    "dev:api": "cd apps/api && pnpm dev",
+    "dev:doc": "cd apps/doc && pnpm dev",
+    "dev:smpp": "cd apps/smpp && pnpm dev",
+    "dev:web": "cd apps/web && pnpm dev",
+    "start:web": "cd apps/web && pnpm start",
+    "format": "turbo run format --continue -- --cache --cache-location .cache/.prettiercache",
+    "format:fix": "turbo run format --continue -- --write --cache --cache-location .cache/.prettiercache",
+    "lint": "turbo run lint --continue -- --cache --cache-location .cache/.eslintcache",
+    "lint:fix": "turbo run lint --continue -- --fix --cache --cache-location .cache/.eslintcache",
+    "lint:ws": "pnpm dlx sherif@latest",
+    "typecheck": "turbo run typecheck",
+    "ui-add": "turbo run ui-add",
+    "clean": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -exec rm -rf '{}' + && find . -name '.next' -exec rm -rf '{}' + && find . -name '.turbo' -exec rm -rf '{}' + && find . -name '.output' -exec rm -rf '{}' + && find . -name '.cache' -exec rm -rf '{}' +"
+  },
+  "devDependencies": {
+    "@rs/prettier-config": "workspace:*",
+    "@turbo/gen": "^2.5.8",
+    "dotenv-cli": "^10.0.0",
+    "prettier": "catalog:",
+    "turbo": "^2.5.8",
+    "typescript": "catalog:"
+  },
+  "prettier": "@rs/prettier-config"
+}
