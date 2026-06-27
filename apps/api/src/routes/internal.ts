@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { and, eq, lte } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 
@@ -242,8 +242,17 @@ internalRouter.post('/messages', zValidator('json', incomingMessageSchema), asyn
 internalRouter.get('/messages/pending', async (c) => {
   const db = c.var.db
 
+  const delaySetting = await db.query.appSettings.findFirst({
+    where: eq(appSettings.key, 'queue_delay_seconds'),
+  })
+  const delaySecs = delaySetting ? (parseInt(delaySetting.value, 10) || 0) : 0
+
+  const whereCondition = delaySecs > 0
+    ? and(eq(messages.status, 'queued'), lte(messages.createdAt, new Date(Date.now() - delaySecs * 1000)))
+    : eq(messages.status, 'queued')
+
   const pending = await db.query.messages.findMany({
-    where: eq(messages.status, 'queued'),
+    where: whereCondition,
     with: { channel: true },
     orderBy: (m, { asc }) => [asc(m.createdAt)],
     limit: 50,
@@ -281,6 +290,19 @@ internalRouter.patch(
     return c.json({ ok: true })
   },
 )
+
+internalRouter.patch('/messages/:messageId/failed', async (c) => {
+  const db = c.var.db
+  const messageId = c.req.param('messageId')!
+  const { detail } = await c.req.json<{ detail?: string }>()
+
+  await db
+    .update(messages)
+    .set({ status: 'failed', statusDetail: detail ?? null, updatedAt: new Date() })
+    .where(eq(messages.id, messageId))
+
+  return c.json({ ok: true })
+})
 
 internalRouter.patch(
   '/messages/status/:smppMessageId',

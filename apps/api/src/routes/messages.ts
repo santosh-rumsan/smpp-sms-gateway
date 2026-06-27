@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 
@@ -74,5 +74,26 @@ messagesRouter.get(
     }
 
     return c.json({ message: msg })
+  },
+)
+
+messagesRouter.delete(
+  '/:channelId/messages/:messageId',
+  requireChannelPermission('write'),
+  async (c) => {
+    const db = c.var.db
+    const channelId = c.req.param('channelId')!
+    const messageId = c.req.param('messageId')!
+
+    const msg = await db.query.messages.findFirst({
+      where: and(eq(messages.id, messageId), eq(messages.channelId, channelId)),
+    })
+
+    if (!msg) return c.json({ error: 'Message not found' }, 404)
+    if (msg.status !== 'queued') return c.json({ error: 'Only queued messages can be deleted' }, 400)
+
+    await db.delete(messages).where(eq(messages.id, messageId))
+
+    return c.json({ ok: true })
   },
 )

@@ -16,6 +16,7 @@ const KNOWN_SETTINGS = [
   { key: 'EMAIL_FORWARD_FROM_NAME', label: 'Email Forward Sender Name', secret: false },
   { key: 'offline_timeout_seconds', label: 'Device Offline Timeout (seconds)', secret: false },
   { key: 'offline_alert_email', label: 'Device Offline Alert Email', secret: false },
+  { key: 'queue_delay_seconds', label: 'Queue Delay (seconds)', secret: false },
 ]
 
 function SettingsPage() {

@@ -64,9 +64,8 @@ export class ApiClient {
   }
 
   async markMessageFailed(messageId: string, detail: string): Promise<void> {
-    const res = await this.request("PATCH", `/internal/messages/status/${messageId}`, {
-      status: "failed",
-      statusDetail: detail,
+    const res = await this.request("PATCH", `/internal/messages/${messageId}/failed`, {
+      detail,
     });
     if (!res.ok) {
       console.error(`Failed to mark message failed: ${res.status}`);

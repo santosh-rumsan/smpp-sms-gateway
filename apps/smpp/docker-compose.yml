@@ -1,8 +1,6 @@
 services:
   smpp:
-    build:
-      context: ../..
-      dockerfile: apps/smpp/Dockerfile
+    image: ghcr.io/santosh-rumsan/rumsan-smpp:latest
     ports:
       - "${HTTP_PORT:-9511}:9511"
     env_file:

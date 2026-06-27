@@ -31,6 +31,7 @@ function ChatPage() {
   const [numberConfirmed, setNumberConfirmed] = useState(false)
   const [showContactPicker, setShowContactPicker] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteMessageId, setDeleteMessageId] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const messageInputRef = useRef<HTMLTextAreaElement>(null)
   const isNew = contactNumber === 'new'
@@ -208,6 +209,24 @@ function ChatPage() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['conversations', channelId] })
       navigate({ to: '/channels/$channelId', params: { channelId } })
+    },
+  })
+
+  const deleteMessageMutation = useMutation({
+    mutationFn: async (messageId: string) => {
+      const token = getAccessToken()
+      const res = await fetch(`${API_URL}/channels/${channelId}/messages/${messageId}`, {
+        method: 'DELETE',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      if (!res.ok) {
+        const err = (await res.json()) as { error?: string }
+        throw new Error(err.error ?? 'Failed to delete message')
+      }
+    },
+    onSuccess: () => {
+      setDeleteMessageId(null)
+      void queryClient.invalidateQueries({ queryKey: ['messages', channelId, contactNumber] })
     },
   })
 
@@ -445,6 +464,15 @@ function ChatPage() {
                     &middot; {msg.status}
                   </span>
                 )}
+                {msg.direction === 'outbound' && msg.status === 'queued' && canWrite && (
+                  <button
+                    onClick={() => setDeleteMessageId(msg.id)}
+                    className="ml-1 text-gray-300 hover:text-red-400 transition-colors"
+                    title="Delete queued message"
+                  >
+                    <Trash2 size={10} />
+                  </button>
+                )}
               </div>
             </div>
           ))
@@ -493,6 +521,14 @@ function ChatPage() {
         description={`This will permanently delete all messages with ${contact?.name ?? contactNumber}. This action cannot be undone.`}
         onConfirm={() => deleteMutation.mutate()}
         onCancel={() => setShowDeleteConfirm(false)}
+      />
+
+      <ConfirmDialog
+        open={deleteMessageId !== null}
+        title="Delete queued message"
+        description="This message is queued for sending. Deleting it will cancel delivery. This cannot be undone."
+        onConfirm={() => deleteMessageId && deleteMessageMutation.mutate(deleteMessageId)}
+        onCancel={() => setDeleteMessageId(null)}
       />
     </div>
   )
