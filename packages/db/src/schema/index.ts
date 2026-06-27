@@ -6,3 +6,5 @@ export * from "./permissions";
 export * from "./google-tokens";
 export * from "./email-transports";
 export * from "./email-logs";
+export * from "./webhook-logs";
+export * from "./connection-logs";

@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, ClipboardList, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useState, useMemo } from 'react'
 
 import { API_URL } from '../../../lib/api'
@@ -198,15 +198,7 @@ function EmailTransportsPage() {
   return (
     <div className="p-6 max-w-2xl">
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold">Email Transports</h1>
-          <Link
-            to="/admin/email-logs"
-            className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-          >
-            <ClipboardList size={14} /> Email Logs
-          </Link>
-        </div>
+        <h1 className="text-xl font-bold">Email Transports</h1>
         <button
           onClick={() => {
             resetForm()

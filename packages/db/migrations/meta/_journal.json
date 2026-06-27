@@ -8,6 +8,20 @@
       "when": 1782094231153,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1782541824205,
+      "tag": "0001_fearless_namor",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1782542108985,
+      "tag": "0002_complex_maddog",
+      "breakpoints": true
     }
   ]
 }

@@ -18,10 +18,14 @@ import { Route as AppAdminRouteImport } from './routes/_app/admin'
 import { Route as AppContactsIndexRouteImport } from './routes/_app/contacts/index'
 import { Route as AppChannelsIndexRouteImport } from './routes/_app/channels/index'
 import { Route as AppAdminIndexRouteImport } from './routes/_app/admin/index'
+import { Route as AppAdminWebhookLogsRouteImport } from './routes/_app/admin/webhook-logs'
 import { Route as AppAdminUsersRouteImport } from './routes/_app/admin/users'
+import { Route as AppAdminSmsQueueRouteImport } from './routes/_app/admin/sms-queue'
+import { Route as AppAdminSmsLogsRouteImport } from './routes/_app/admin/sms-logs'
 import { Route as AppAdminSettingsRouteImport } from './routes/_app/admin/settings'
 import { Route as AppAdminEmailTransportsRouteImport } from './routes/_app/admin/email-transports'
 import { Route as AppAdminEmailLogsRouteImport } from './routes/_app/admin/email-logs'
+import { Route as AppAdminConnectionLogsRouteImport } from './routes/_app/admin/connection-logs'
 import { Route as AppAdminApiKeysRouteImport } from './routes/_app/admin/api-keys'
 import { Route as AppChannelsChannelIdIndexRouteImport } from './routes/_app/channels/$channelId/index'
 import { Route as AppChannelsChannelIdSettingsRouteImport } from './routes/_app/channels/$channelId/settings'
@@ -71,9 +75,24 @@ const AppAdminIndexRoute = AppAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppAdminRoute,
 } as any)
+const AppAdminWebhookLogsRoute = AppAdminWebhookLogsRouteImport.update({
+  id: '/webhook-logs',
+  path: '/webhook-logs',
+  getParentRoute: () => AppAdminRoute,
+} as any)
 const AppAdminUsersRoute = AppAdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AppAdminRoute,
+} as any)
+const AppAdminSmsQueueRoute = AppAdminSmsQueueRouteImport.update({
+  id: '/sms-queue',
+  path: '/sms-queue',
+  getParentRoute: () => AppAdminRoute,
+} as any)
+const AppAdminSmsLogsRoute = AppAdminSmsLogsRouteImport.update({
+  id: '/sms-logs',
+  path: '/sms-logs',
   getParentRoute: () => AppAdminRoute,
 } as any)
 const AppAdminSettingsRoute = AppAdminSettingsRouteImport.update({
@@ -89,6 +108,11 @@ const AppAdminEmailTransportsRoute = AppAdminEmailTransportsRouteImport.update({
 const AppAdminEmailLogsRoute = AppAdminEmailLogsRouteImport.update({
   id: '/email-logs',
   path: '/email-logs',
+  getParentRoute: () => AppAdminRoute,
+} as any)
+const AppAdminConnectionLogsRoute = AppAdminConnectionLogsRouteImport.update({
+  id: '/connection-logs',
+  path: '/connection-logs',
   getParentRoute: () => AppAdminRoute,
 } as any)
 const AppAdminApiKeysRoute = AppAdminApiKeysRouteImport.update({
@@ -122,10 +146,14 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AppAdminRouteWithChildren
   '/profile': typeof AppProfileRoute
   '/admin/api-keys': typeof AppAdminApiKeysRoute
+  '/admin/connection-logs': typeof AppAdminConnectionLogsRoute
   '/admin/email-logs': typeof AppAdminEmailLogsRoute
   '/admin/email-transports': typeof AppAdminEmailTransportsRoute
   '/admin/settings': typeof AppAdminSettingsRoute
+  '/admin/sms-logs': typeof AppAdminSmsLogsRoute
+  '/admin/sms-queue': typeof AppAdminSmsQueueRoute
   '/admin/users': typeof AppAdminUsersRoute
+  '/admin/webhook-logs': typeof AppAdminWebhookLogsRoute
   '/admin/': typeof AppAdminIndexRoute
   '/channels/': typeof AppChannelsIndexRoute
   '/contacts/': typeof AppContactsIndexRoute
@@ -139,10 +167,14 @@ export interface FileRoutesByTo {
   '/setup': typeof SetupRoute
   '/profile': typeof AppProfileRoute
   '/admin/api-keys': typeof AppAdminApiKeysRoute
+  '/admin/connection-logs': typeof AppAdminConnectionLogsRoute
   '/admin/email-logs': typeof AppAdminEmailLogsRoute
   '/admin/email-transports': typeof AppAdminEmailTransportsRoute
   '/admin/settings': typeof AppAdminSettingsRoute
+  '/admin/sms-logs': typeof AppAdminSmsLogsRoute
+  '/admin/sms-queue': typeof AppAdminSmsQueueRoute
   '/admin/users': typeof AppAdminUsersRoute
+  '/admin/webhook-logs': typeof AppAdminWebhookLogsRoute
   '/admin': typeof AppAdminIndexRoute
   '/channels': typeof AppChannelsIndexRoute
   '/contacts': typeof AppContactsIndexRoute
@@ -159,10 +191,14 @@ export interface FileRoutesById {
   '/_app/admin': typeof AppAdminRouteWithChildren
   '/_app/profile': typeof AppProfileRoute
   '/_app/admin/api-keys': typeof AppAdminApiKeysRoute
+  '/_app/admin/connection-logs': typeof AppAdminConnectionLogsRoute
   '/_app/admin/email-logs': typeof AppAdminEmailLogsRoute
   '/_app/admin/email-transports': typeof AppAdminEmailTransportsRoute
   '/_app/admin/settings': typeof AppAdminSettingsRoute
+  '/_app/admin/sms-logs': typeof AppAdminSmsLogsRoute
+  '/_app/admin/sms-queue': typeof AppAdminSmsQueueRoute
   '/_app/admin/users': typeof AppAdminUsersRoute
+  '/_app/admin/webhook-logs': typeof AppAdminWebhookLogsRoute
   '/_app/admin/': typeof AppAdminIndexRoute
   '/_app/channels/': typeof AppChannelsIndexRoute
   '/_app/contacts/': typeof AppContactsIndexRoute
@@ -179,10 +215,14 @@ export interface FileRouteTypes {
     | '/admin'
     | '/profile'
     | '/admin/api-keys'
+    | '/admin/connection-logs'
     | '/admin/email-logs'
     | '/admin/email-transports'
     | '/admin/settings'
+    | '/admin/sms-logs'
+    | '/admin/sms-queue'
     | '/admin/users'
+    | '/admin/webhook-logs'
     | '/admin/'
     | '/channels/'
     | '/contacts/'
@@ -196,10 +236,14 @@ export interface FileRouteTypes {
     | '/setup'
     | '/profile'
     | '/admin/api-keys'
+    | '/admin/connection-logs'
     | '/admin/email-logs'
     | '/admin/email-transports'
     | '/admin/settings'
+    | '/admin/sms-logs'
+    | '/admin/sms-queue'
     | '/admin/users'
+    | '/admin/webhook-logs'
     | '/admin'
     | '/channels'
     | '/contacts'
@@ -215,10 +259,14 @@ export interface FileRouteTypes {
     | '/_app/admin'
     | '/_app/profile'
     | '/_app/admin/api-keys'
+    | '/_app/admin/connection-logs'
     | '/_app/admin/email-logs'
     | '/_app/admin/email-transports'
     | '/_app/admin/settings'
+    | '/_app/admin/sms-logs'
+    | '/_app/admin/sms-queue'
     | '/_app/admin/users'
+    | '/_app/admin/webhook-logs'
     | '/_app/admin/'
     | '/_app/channels/'
     | '/_app/contacts/'
@@ -299,11 +347,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminIndexRouteImport
       parentRoute: typeof AppAdminRoute
     }
+    '/_app/admin/webhook-logs': {
+      id: '/_app/admin/webhook-logs'
+      path: '/webhook-logs'
+      fullPath: '/admin/webhook-logs'
+      preLoaderRoute: typeof AppAdminWebhookLogsRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
     '/_app/admin/users': {
       id: '/_app/admin/users'
       path: '/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AppAdminUsersRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
+    '/_app/admin/sms-queue': {
+      id: '/_app/admin/sms-queue'
+      path: '/sms-queue'
+      fullPath: '/admin/sms-queue'
+      preLoaderRoute: typeof AppAdminSmsQueueRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
+    '/_app/admin/sms-logs': {
+      id: '/_app/admin/sms-logs'
+      path: '/sms-logs'
+      fullPath: '/admin/sms-logs'
+      preLoaderRoute: typeof AppAdminSmsLogsRouteImport
       parentRoute: typeof AppAdminRoute
     }
     '/_app/admin/settings': {
@@ -325,6 +394,13 @@ declare module '@tanstack/react-router' {
       path: '/email-logs'
       fullPath: '/admin/email-logs'
       preLoaderRoute: typeof AppAdminEmailLogsRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
+    '/_app/admin/connection-logs': {
+      id: '/_app/admin/connection-logs'
+      path: '/connection-logs'
+      fullPath: '/admin/connection-logs'
+      preLoaderRoute: typeof AppAdminConnectionLogsRouteImport
       parentRoute: typeof AppAdminRoute
     }
     '/_app/admin/api-keys': {
@@ -360,19 +436,27 @@ declare module '@tanstack/react-router' {
 
 interface AppAdminRouteChildren {
   AppAdminApiKeysRoute: typeof AppAdminApiKeysRoute
+  AppAdminConnectionLogsRoute: typeof AppAdminConnectionLogsRoute
   AppAdminEmailLogsRoute: typeof AppAdminEmailLogsRoute
   AppAdminEmailTransportsRoute: typeof AppAdminEmailTransportsRoute
   AppAdminSettingsRoute: typeof AppAdminSettingsRoute
+  AppAdminSmsLogsRoute: typeof AppAdminSmsLogsRoute
+  AppAdminSmsQueueRoute: typeof AppAdminSmsQueueRoute
   AppAdminUsersRoute: typeof AppAdminUsersRoute
+  AppAdminWebhookLogsRoute: typeof AppAdminWebhookLogsRoute
   AppAdminIndexRoute: typeof AppAdminIndexRoute
 }
 
 const AppAdminRouteChildren: AppAdminRouteChildren = {
   AppAdminApiKeysRoute: AppAdminApiKeysRoute,
+  AppAdminConnectionLogsRoute: AppAdminConnectionLogsRoute,
   AppAdminEmailLogsRoute: AppAdminEmailLogsRoute,
   AppAdminEmailTransportsRoute: AppAdminEmailTransportsRoute,
   AppAdminSettingsRoute: AppAdminSettingsRoute,
+  AppAdminSmsLogsRoute: AppAdminSmsLogsRoute,
+  AppAdminSmsQueueRoute: AppAdminSmsQueueRoute,
   AppAdminUsersRoute: AppAdminUsersRoute,
+  AppAdminWebhookLogsRoute: AppAdminWebhookLogsRoute,
   AppAdminIndexRoute: AppAdminIndexRoute,
 }
 

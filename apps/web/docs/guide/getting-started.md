@@ -126,8 +126,7 @@ smpp-sms/
 ├── apps/
 │   ├── api/          Cloudflare Worker REST API
 │   ├── smpp/         Node.js SMPP gateway (Docker-ready)
-│   ├── web/          React frontend
-│   └── doc/          This documentation (VitePress)
+│   └── web/          React frontend + documentation
 ├── packages/
 │   ├── db/           Drizzle ORM schemas and migrations
 │   ├── sdk/          Shared HTTP client utilities

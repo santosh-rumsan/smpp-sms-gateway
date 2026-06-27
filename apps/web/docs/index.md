@@ -22,6 +22,10 @@ features:
     details: Track message status from queued through sent to delivered with SMPP delivery receipts
   - title: Email & Webhook Notifications
     details: Forward incoming SMS to email addresses or trigger webhook URLs per channel
+  - title: Observability
+    details: Connection logs, SMS logs, webhook delivery logs, email logs, and live SMS queue in the Admin panel
+  - title: Device Offline Alerts
+    details: Automatic email alerts when a GoIP device loses its SMPP connection
   - title: Docker Ready
     details: Run the SMPP gateway as a Docker container for easy deployment on any server
 ---

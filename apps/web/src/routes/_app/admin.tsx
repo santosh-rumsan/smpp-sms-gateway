@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useNavigate } from '@tanstack/react-router'
-import { Mail, Monitor, Key, Settings, Users } from 'lucide-react'
+import { Activity, Clock, Mail, MessageSquare, Monitor, Key, Settings, Users, Webhook } from 'lucide-react'
 import { useEffect } from 'react'
 import { cn } from '@rs/ui'
 
@@ -9,13 +9,35 @@ export const Route = createFileRoute('/_app/admin')({
   component: AdminLayout,
 })
 
-const navItems = [
-  { to: '/admin', label: 'Devices', icon: Monitor },
-  { to: '/admin/users', label: 'Users', icon: Users },
-  { to: '/admin/api-keys', label: 'API Keys', icon: Key },
-  { to: '/admin/email-transports', label: 'Email', icon: Mail },
-  { to: '/admin/settings', label: 'Settings', icon: Settings },
+const navGroups = [
+  {
+    label: null,
+    items: [
+      { to: '/admin', label: 'Devices', icon: Monitor },
+      { to: '/admin/users', label: 'Users', icon: Users },
+      { to: '/admin/api-keys', label: 'API Keys', icon: Key },
+      { to: '/admin/email-transports', label: 'Email', icon: Mail },
+      { to: '/admin/settings', label: 'Settings', icon: Settings },
+    ],
+  },
+  {
+    label: 'Logs',
+    items: [
+      { to: '/admin/email-logs', label: 'Email Logs', icon: Mail },
+      { to: '/admin/webhook-logs', label: 'Webhook Logs', icon: Webhook },
+      { to: '/admin/connection-logs', label: 'Connection Logs', icon: Activity },
+      { to: '/admin/sms-logs', label: 'SMS Logs', icon: MessageSquare },
+    ],
+  },
+  {
+    label: 'Queue',
+    items: [
+      { to: '/admin/sms-queue', label: 'SMS Queue', icon: Clock },
+    ],
+  },
 ]
+
+const allNavItems = navGroups.flatMap((g) => g.items)
 
 function AdminLayout() {
   const session = useSession()
@@ -34,7 +56,7 @@ function AdminLayout() {
     <div className="flex h-full flex-col sm:flex-row">
       {/* Mobile: horizontal scrollable tab bar */}
       <div className="sm:hidden flex overflow-x-auto border-b border-gray-200 flex-shrink-0 bg-white">
-        {navItems.map((item) => (
+        {allNavItems.map((item) => (
           <Link
             key={item.to}
             to={item.to}
@@ -51,23 +73,34 @@ function AdminLayout() {
       </div>
 
       {/* Desktop: vertical sidebar */}
-      <div className="hidden sm:block w-48 border-r border-gray-200 p-4 space-y-1 flex-shrink-0">
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-2">
+      <div className="hidden sm:block w-52 border-r border-gray-200 p-4 flex-shrink-0 space-y-4">
+        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2">
           Admin
         </h2>
-        {navItems.map((item) => (
-          <Link
-            key={item.to}
-            to={item.to}
-            className={cn(
-              'flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-gray-600 hover:bg-gray-100 transition-colors',
+        {navGroups.map((group, gi) => (
+          <div key={gi}>
+            {group.label && (
+              <p className="px-2 mb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                {group.label}
+              </p>
             )}
-            activeProps={{ className: 'bg-accent-50 text-accent-600 font-medium' }}
-            activeOptions={{ exact: item.to === '/admin' }}
-          >
-            <item.icon size={16} />
-            {item.label}
-          </Link>
+            <div className="space-y-0.5">
+              {group.items.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={cn(
+                    'flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-gray-600 hover:bg-gray-100 transition-colors',
+                  )}
+                  activeProps={{ className: 'bg-accent-50 text-accent-600 font-medium' }}
+                  activeOptions={{ exact: item.to === '/admin' }}
+                >
+                  <item.icon size={16} />
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
 

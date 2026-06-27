@@ -5,20 +5,22 @@ import { CheckCircle, XCircle } from 'lucide-react'
 import { API_URL } from '../../../lib/api'
 import { getAccessToken } from '../../../lib/auth-client'
 
-export const Route = createFileRoute('/_app/admin/email-logs')({
-  component: EmailLogsPage,
+export const Route = createFileRoute('/_app/admin/webhook-logs')({
+  component: WebhookLogsPage,
 })
 
-interface EmailLog {
+interface WebhookLog {
   id: string
-  type: 'sms_forward' | 'device_offline' | 'smpp_connected' | 'smpp_disconnected'
-  recipient: string
-  subject: string
-  deviceId: string | null
-  channelId: string | null
+  channelId: string
+  channelName: string | null
+  channelPhone: string | null
+  webhookId: string | null
+  url: string
+  event: string
   status: 'success' | 'error'
+  statusCode: number | null
   error: string | null
-  sentAt: string
+  triggeredAt: string
 }
 
 function authHeaders(): Record<string, string> {
@@ -26,27 +28,18 @@ function authHeaders(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  sms_forward: 'SMS Forward',
-  device_offline: 'Device Offline Alert',
-  smpp_connected: 'SMPP Connected',
-  smpp_disconnected: 'SMPP Disconnected',
+function truncateUrl(url: string, max = 48): string {
+  return url.length > max ? url.slice(0, max) + '…' : url
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  device_offline: 'bg-orange-50 text-orange-700 border border-orange-200',
-  smpp_disconnected: 'bg-red-50 text-red-700 border border-red-200',
-  smpp_connected: 'bg-green-50 text-green-700 border border-green-200',
-}
-
-function EmailLogsPage() {
+function WebhookLogsPage() {
   const { data, isLoading } = useQuery({
-    queryKey: ['admin', 'email-logs'],
+    queryKey: ['admin', 'webhook-logs'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/admin/email-logs`, {
+      const res = await fetch(`${API_URL}/admin/webhook-logs`, {
         headers: authHeaders(),
       })
-      return res.json() as Promise<{ logs: EmailLog[] }>
+      return res.json() as Promise<{ logs: WebhookLog[] }>
     },
     refetchInterval: 30_000,
   })
@@ -56,25 +49,25 @@ function EmailLogsPage() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-xl font-bold">Email Logs</h1>
+        <h1 className="text-xl font-bold">Webhook Logs</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Emails sent by the gateway — SMS forwards and device offline alerts.
+          Delivery status for all outbound webhook calls triggered by incoming SMS.
         </p>
       </div>
 
       {isLoading ? (
         <p className="text-gray-400 text-sm">Loading...</p>
       ) : logs.length === 0 ? (
-        <p className="text-gray-400 text-sm">No emails sent yet.</p>
+        <p className="text-gray-400 text-sm">No webhook deliveries yet.</p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-gray-200">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <th className="px-4 py-3">Time</th>
-                <th className="px-4 py-3">Type</th>
-                <th className="px-4 py-3">Recipient</th>
-                <th className="px-4 py-3">Subject</th>
+                <th className="px-4 py-3">Channel</th>
+                <th className="px-4 py-3">Event</th>
+                <th className="px-4 py-3">URL</th>
                 <th className="px-4 py-3">Status</th>
               </tr>
             </thead>
@@ -82,7 +75,7 @@ function EmailLogsPage() {
               {logs.map((log) => (
                 <tr key={log.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">
-                    {new Date(log.sentAt).toLocaleString('en-US', {
+                    {new Date(log.triggeredAt).toLocaleString('en-US', {
                       timeZone: 'Asia/Kathmandu',
                       month: 'short',
                       day: 'numeric',
@@ -90,36 +83,35 @@ function EmailLogsPage() {
                       minute: '2-digit',
                     })}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
-                        TYPE_COLORS[log.type] ?? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      }`}
-                    >
-                      {TYPE_LABELS[log.type] ?? log.type}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-700 font-mono text-xs">
-                    {log.recipient === 'gateway' ? (
-                      <span className="text-gray-400 italic not-italic font-sans">—</span>
+                  <td className="px-4 py-3">
+                    {log.channelName ? (
+                      <div>
+                        <span className="text-gray-700 text-xs font-medium">{log.channelName}</span>
+                        <span className="block text-gray-400 text-xs font-mono">{log.channelPhone}</span>
+                      </div>
                     ) : (
-                      log.recipient
+                      <span className="text-gray-400 text-xs font-mono">{log.channelId}</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-gray-600 max-w-xs truncate" title={log.subject}>
-                    {log.subject}
+                  <td className="px-4 py-3">
+                    <span className="inline-flex items-center rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      {log.event}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-gray-400 font-mono text-xs" title={log.url}>
+                    {truncateUrl(log.url)}
                   </td>
                   <td className="px-4 py-3">
                     {log.status === 'success' ? (
                       <span className="flex items-center gap-1 text-green-600">
                         <CheckCircle size={14} />
-                        <span className="text-xs">Sent</span>
+                        <span className="text-xs">{log.statusCode ?? 'OK'}</span>
                       </span>
                     ) : (
                       <div>
                         <span className="flex items-center gap-1 text-red-500">
                           <XCircle size={14} />
-                          <span className="text-xs">Error</span>
+                          <span className="text-xs">{log.statusCode ? `HTTP ${log.statusCode}` : 'Error'}</span>
                         </span>
                         {log.error && (
                           <p

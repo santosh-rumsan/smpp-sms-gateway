@@ -3,6 +3,8 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'SMPP SMS Gateway',
   description: 'Documentation for Rumsan SMPP SMS Gateway',
+  base: '/docs/',
+  outDir: '../public/docs',
   ignoreDeadLinks: [/^http:\/\/localhost/],
   vite: {
     server: {

@@ -1,6 +1,6 @@
 # Notifications
 
-The gateway can forward incoming SMS messages via email and/or webhooks on a per-channel basis.
+The gateway can forward incoming SMS messages via email and/or webhooks on a per-channel basis. It can also send alerts when a GoIP device goes offline.
 
 ## Email Forwarding
 
@@ -16,7 +16,7 @@ Three transport types are supported:
 | **SMTP** | Send via an SMTP server |
 | **Cloudflare** | Send via Cloudflare MailChannels integration |
 
-Only one transport can be active at a time. Create a transport and click **Activate** to enable it.
+Only one transport can be active at a time. Create a transport and click **Activate** to enable it. Use **Deactivate** to disable it without deleting. Use **Delete** to remove a transport (must be inactive first).
 
 ### Set Up Email Forwards
 
@@ -55,3 +55,22 @@ Each incoming SMS triggers a POST request with this JSON body:
 ```
 
 The `Content-Type` header is always `application/json`. Any custom headers you configure are also included in the request.
+
+## Device Offline Alerts
+
+The SMPP gateway sends an email alert when a GoIP device loses its SMPP connection.
+
+### Configure Offline Alerts
+
+In **Admin > Settings**, set:
+
+| Setting | Description |
+|---------|-------------|
+| **Offline Timeout** | Seconds without heartbeat before a device is considered offline |
+| **Offline Alert Email** | Email address to notify when a device goes offline |
+
+An active email transport must be configured for offline alerts to be delivered.
+
+### Monitoring Connection Status
+
+Check **Admin > Connection Logs** to see the full history of SMPP connect/disconnect events per device.

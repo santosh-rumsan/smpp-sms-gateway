@@ -2,7 +2,7 @@ import { and, eq, lte } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 
-import { appSettings, channelEmailForwards, channelWebhooks, channels, devices, emailLogs, emailTransports, messages } from '@rs/db/schema'
+import { appSettings, channelEmailForwards, channelWebhooks, channels, connectionLogs, devices, emailLogs, emailTransports, messages, webhookLogs } from '@rs/db/schema'
 import {
   incomingMessageSchema,
   markSentSchema,
@@ -206,8 +206,9 @@ internalRouter.post('/messages', zValidator('json', incomingMessageSchema), asyn
       })
 
       if (webhooks.length > 0) {
+        const event = 'sms.received'
         const payload = JSON.stringify({
-          event: 'sms.received',
+          event,
           channelId: channel.id,
           channelName: channel.name,
           channelPhone: channel.phoneNumber,
@@ -216,7 +217,7 @@ internalRouter.post('/messages', zValidator('json', incomingMessageSchema), asyn
           receivedAt: new Date().toISOString(),
         })
 
-        await Promise.allSettled(
+        const webhookResults = await Promise.allSettled(
           webhooks.map((wh) => {
             const hdrs: Record<string, string> = { 'Content-Type': 'application/json' }
             if (wh.headers && typeof wh.headers === 'object') {
@@ -226,6 +227,38 @@ internalRouter.post('/messages', zValidator('json', incomingMessageSchema), asyn
               method: 'POST',
               headers: hdrs,
               body: payload,
+            })
+          }),
+        )
+
+        const now = new Date()
+        await Promise.all(
+          webhooks.map(async (wh, i) => {
+            const result = webhookResults[i]!
+            let status: 'success' | 'error' = 'error'
+            let statusCode: number | null = null
+            let error: string | null = null
+
+            if (result.status === 'fulfilled') {
+              statusCode = result.value.status
+              status = result.value.ok ? 'success' : 'error'
+              if (!result.value.ok) {
+                error = `HTTP ${result.value.status}`
+              }
+            } else {
+              error = String(result.reason)
+            }
+
+            return db.insert(webhookLogs).values({
+              id: createId(),
+              channelId: channel.id,
+              webhookId: wh.id,
+              url: wh.url,
+              event,
+              status,
+              statusCode,
+              error,
+              triggeredAt: now,
             })
           }),
         )
@@ -409,18 +442,12 @@ internalRouter.post('/devices/:deviceId/connection-event', async (c) => {
   const deviceId = c.req.param('deviceId')!
   const { type, deviceName } = await c.req.json<{ type: string; deviceName: string }>()
 
-  const label = type === 'smpp_connected' ? 'SMPP Connected' : 'SMPP Disconnected'
-  const name = deviceName || deviceId
-
-  await db.insert(emailLogs).values({
+  await db.insert(connectionLogs).values({
     id: createId(),
-    type: type as 'smpp_connected' | 'smpp_disconnected',
-    recipient: 'gateway',
-    subject: `${label}: ${name}`,
     deviceId,
-    status: 'success',
-    error: null,
-    sentAt: new Date(),
+    deviceName: deviceName || deviceId,
+    type: type === 'smpp_connected' ? 'connected' : 'disconnected',
+    occurredAt: new Date(),
   })
 
   return c.json({ ok: true })

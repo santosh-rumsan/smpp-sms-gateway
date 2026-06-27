@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 9515",
+    "dev:doc": "vitepress dev docs",
+    "build:doc": "vitepress build docs",
     "start": "vite build && vite preview --port 9515",
     "build": "vite build",
     "build:cf": "NITRO_PRESET=cloudflare-pages vite build",
@@ -41,6 +43,7 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "devDependencies": {
+    "vitepress": "^1.6.3",
     "wrangler": "catalog:",
     "@tanstack/devtools-vite": "catalog:tanstack",
     "@tanstack/eslint-config": "catalog:tanstack",

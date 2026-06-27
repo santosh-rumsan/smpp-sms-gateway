@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useNavigate } from '@tanstack/react-router'
-import { BookUser, MessageSquare, Shield, UserCircle } from 'lucide-react'
+import { BookOpen, BookUser, MessageSquare, Shield, UserCircle } from 'lucide-react'
 import { cn } from '@rs/ui'
 import { useEffect, useState } from 'react'
 
@@ -93,6 +93,7 @@ function AppLayout() {
     { icon: <MessageSquare size={18} />, to: '/channels' as const },
     { icon: <BookUser size={18} />, to: '/contacts' as const },
     ...(isAdmin ? [{ icon: <Shield size={18} />, to: '/admin' as const }] : []),
+    { icon: <BookOpen size={18} />, href: '/docs/' },
   ]
 
   const mobileNavItems: MobileNavItem[] = [

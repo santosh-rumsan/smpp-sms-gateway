@@ -22,6 +22,8 @@ The `deviceId` field is optional. When provided, the device's `countryCode` is u
 
 Get queued outbound messages waiting to be sent (limit 50, ordered by creation time).
 
+If the `queue_delay_seconds` setting is configured, only messages older than that delay are returned, providing a hold-off window before delivery.
+
 **Response:**
 ```json
 {
@@ -46,6 +48,17 @@ Mark a message as sent with the SMPP message ID.
 ```json
 {
   "smppMessageId": "abc123"
+}
+```
+
+## PATCH /internal/messages/:messageId/failed
+
+Mark a message as failed with an optional detail string.
+
+**Request:**
+```json
+{
+  "detail": "SMPP submit_sm error: 0x00000045"
 }
 ```
 
@@ -106,3 +119,35 @@ Update the SMPP connection status for a device (stored in app settings).
   "connected": true
 }
 ```
+
+## GET /internal/settings
+
+Get gateway-relevant app settings.
+
+**Response:**
+```json
+{
+  "offline_timeout_seconds": "60",
+  "offline_alert_email": "ops@example.com"
+}
+```
+
+## POST /internal/devices/:deviceId/connection-event
+
+Log an SMPP connect or disconnect event.
+
+**Request:**
+```json
+{
+  "type": "smpp_connected",
+  "deviceName": "Office GoIP-4"
+}
+```
+
+`type` should be `smpp_connected` for connections; any other value is recorded as `disconnected`.
+
+## POST /internal/devices/:deviceId/offline-alert
+
+Trigger an offline alert email for a device. Uses the active email transport and the `offline_alert_email` setting. Skipped silently if either is not configured.
+
+No request body required.

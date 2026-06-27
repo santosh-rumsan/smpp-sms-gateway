@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm'
+import { and, desc, eq, inArray } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 
@@ -7,8 +7,12 @@ import {
   appSettings,
   channelPermissions,
   channels,
+  connectionLogs,
   devices,
+  emailLogs,
   emailTransports,
+  messages,
+  webhookLogs,
 } from '@rs/db/schema'
 import {
   createApiKeySchema,
@@ -389,10 +393,92 @@ adminRouter.delete('/email-transports/:id', async (c) => {
 adminRouter.get('/email-logs', async (c) => {
   const db = c.var.db
   const logs = await db.query.emailLogs.findMany({
+    where: inArray(emailLogs.type, ['sms_forward', 'device_offline']),
     orderBy: (l, { desc }) => [desc(l.sentAt)],
     limit: 200,
   })
   return c.json({ logs })
+})
+
+// ── Webhook Logs ─────────────────────────────────────────────────────────────
+
+adminRouter.get('/webhook-logs', async (c) => {
+  const db = c.var.db
+  const logs = await db
+    .select({
+      id: webhookLogs.id,
+      channelId: webhookLogs.channelId,
+      channelName: channels.name,
+      channelPhone: channels.phoneNumber,
+      webhookId: webhookLogs.webhookId,
+      url: webhookLogs.url,
+      event: webhookLogs.event,
+      status: webhookLogs.status,
+      statusCode: webhookLogs.statusCode,
+      error: webhookLogs.error,
+      triggeredAt: webhookLogs.triggeredAt,
+    })
+    .from(webhookLogs)
+    .leftJoin(channels, eq(webhookLogs.channelId, channels.id))
+    .orderBy(desc(webhookLogs.triggeredAt))
+    .limit(200)
+  return c.json({ logs })
+})
+
+// ── Connection Logs ──────────────────────────────────────────────────────────
+
+adminRouter.get('/connection-logs', async (c) => {
+  const db = c.var.db
+  const logs = await db.query.connectionLogs.findMany({
+    orderBy: (l, { desc }) => [desc(l.occurredAt)],
+    limit: 200,
+  })
+  return c.json({ logs })
+})
+
+// ── SMS Logs ─────────────────────────────────────────────────────────────────
+
+adminRouter.get('/sms-logs', async (c) => {
+  const db = c.var.db
+  const logs = await db
+    .select({
+      id: messages.id,
+      channelId: messages.channelId,
+      channelName: channels.name,
+      channelPhone: channels.phoneNumber,
+      direction: messages.direction,
+      contactNumber: messages.contactNumber,
+      content: messages.content,
+      status: messages.status,
+      statusDetail: messages.statusDetail,
+      createdAt: messages.createdAt,
+    })
+    .from(messages)
+    .leftJoin(channels, eq(messages.channelId, channels.id))
+    .orderBy(desc(messages.createdAt))
+    .limit(500)
+  return c.json({ logs })
+})
+
+// ── SMS Queue ────────────────────────────────────────────────────────────────
+
+adminRouter.get('/sms-queue', async (c) => {
+  const db = c.var.db
+  const queued = await db
+    .select({
+      id: messages.id,
+      channelId: messages.channelId,
+      channelName: channels.name,
+      channelPhone: channels.phoneNumber,
+      contactNumber: messages.contactNumber,
+      content: messages.content,
+      createdAt: messages.createdAt,
+    })
+    .from(messages)
+    .leftJoin(channels, eq(messages.channelId, channels.id))
+    .where(eq(messages.status, 'queued'))
+    .orderBy(desc(messages.createdAt))
+  return c.json({ messages: queued })
 })
 
 // ── API Keys ─────────────────────────────────────────────────────────────────

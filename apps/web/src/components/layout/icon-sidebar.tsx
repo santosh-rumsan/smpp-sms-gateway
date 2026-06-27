@@ -5,6 +5,7 @@ import { cn } from '@rs/ui'
 export interface SidebarNavItem {
   icon: React.ReactNode
   to?: string
+  href?: string
   badge?: number
   onClick?: () => void
 }
@@ -61,6 +62,16 @@ export function IconSidebar({
               </span>
             )}
           </Link>
+        ) : item.href ? (
+          <a
+            key={i}
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn('relative p-2.5 rounded-xl transition-colors', inactiveClass)}
+          >
+            {item.icon}
+          </a>
         ) : (
           <button
             key={i}

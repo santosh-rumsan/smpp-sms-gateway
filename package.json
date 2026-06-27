@@ -13,7 +13,7 @@
     "db:migrate": "dotenv -e .env -- pnpm --filter @rs/db db:migrate",
     "dev": "turbo watch dev --continue",
     "dev:api": "cd apps/api && pnpm dev",
-    "dev:doc": "cd apps/doc && pnpm dev",
+    "dev:doc": "cd apps/web && pnpm dev:doc",
     "dev:smpp": "cd apps/smpp && pnpm dev",
     "dev:web": "cd apps/web && pnpm dev",
     "start:web": "cd apps/web && pnpm start",
