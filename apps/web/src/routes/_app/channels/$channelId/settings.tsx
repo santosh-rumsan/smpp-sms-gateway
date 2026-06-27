@@ -383,7 +383,7 @@ function ChannelSettingsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200 mb-6 gap-1">
+      <div className="flex border-b border-gray-200 mb-6 gap-1 overflow-x-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon
           return (
