@@ -48,12 +48,21 @@ interface AppUser {
 
 type Tab = 'general' | 'email' | 'webhooks' | 'access'
 
-const tabs: { key: Tab; label: string; icon: typeof Settings }[] = [
-  { key: 'general', label: 'General', icon: Settings },
-  { key: 'email', label: 'Email Forwarding', icon: Mail },
-  { key: 'webhooks', label: 'Webhooks', icon: Globe },
-  { key: 'access', label: 'User Access', icon: Users },
-]
+const ROLE_LABELS: Record<string, string> = {
+  reader: 'Reader',
+  sender: 'Sender',
+  manager: 'Manager',
+  // legacy values
+  read: 'Reader',
+  write: 'Sender',
+  readwrite: 'Sender',
+}
+
+const ROLE_DESCRIPTIONS: Record<string, string> = {
+  reader: 'Can only read SMS',
+  sender: 'Can read and send SMS',
+  manager: 'Can read, send, and manage channel settings',
+}
 
 export const Route = createFileRoute('/_app/channels/$channelId/settings')({
   component: ChannelSettingsPage,
@@ -78,6 +87,7 @@ function ChannelSettingsPage() {
   const [revokeUserTarget, setRevokeUserTarget] = useState<{ userId: string; userName: string } | null>(null)
   const [editingWebhookId, setEditingWebhookId] = useState<string | null>(null)
   const [editHeaders, setEditHeaders] = useState<{ key: string; value: string }[]>([])
+  const [newUserRole, setNewUserRole] = useState<'reader' | 'sender' | 'manager'>('reader')
 
   const channelQuery = useQuery({
     queryKey: ['channel', channelId],
@@ -86,7 +96,7 @@ function ChannelSettingsPage() {
       const res = await fetch(`${API_URL}/channels/${channelId}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
-      return res.json() as Promise<{ channel: ChannelData; messageCount: number }>
+      return res.json() as Promise<{ channel: ChannelData; messageCount: number; permission: string }>
     },
   })
 
@@ -94,6 +104,17 @@ function ChannelSettingsPage() {
     setName(channelQuery.data.channel.name)
     setNameLoaded(true)
   }
+
+  const isAdmin = user?.role.split(',').includes('admin') ?? false
+  const myPermission = channelQuery.data?.permission
+  const canManage = isAdmin || myPermission === 'manager'
+
+  const tabs: { key: Tab; label: string; icon: typeof Settings }[] = [
+    { key: 'general', label: 'General', icon: Settings },
+    { key: 'email', label: 'Email Forwarding', icon: Mail },
+    { key: 'webhooks', label: 'Webhooks', icon: Globe },
+    ...(isAdmin ? [{ key: 'access' as Tab, label: 'User Access', icon: Users }] : []),
+  ]
 
   const forwardsQuery = useQuery({
     queryKey: ['channel', channelId, 'email-forwards'],
@@ -104,6 +125,7 @@ function ChannelSettingsPage() {
       })
       return res.json() as Promise<{ emailForwards: EmailForward[] }>
     },
+    enabled: canManage,
   })
 
   const webhooksQuery = useQuery({
@@ -115,6 +137,7 @@ function ChannelSettingsPage() {
       })
       return res.json() as Promise<{ webhooks: Webhook[] }>
     },
+    enabled: canManage,
   })
 
   const permissionsQuery = useQuery({
@@ -126,6 +149,7 @@ function ChannelSettingsPage() {
       })
       return res.json() as Promise<{ permissions: ChannelPermission[] }>
     },
+    enabled: isAdmin,
   })
 
   const usersQuery = useQuery({
@@ -138,6 +162,7 @@ function ChannelSettingsPage() {
       if (!res.ok) throw new Error('Failed to fetch users')
       return res.json() as Promise<{ users: AppUser[] }>
     },
+    enabled: isAdmin,
   })
 
   const updateNameMutation = useMutation({
@@ -302,14 +327,6 @@ function ChannelSettingsPage() {
     },
   })
 
-  if (!user?.role.split(',').includes('admin')) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-gray-500">You don't have permission to access this page.</p>
-      </div>
-    )
-  }
-
   if (channelQuery.isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -324,6 +341,14 @@ function ChannelSettingsPage() {
     return (
       <div className="flex items-center justify-center h-full">
         <p className="text-gray-500">Channel not found</p>
+      </div>
+    )
+  }
+
+  if (!canManage) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-gray-500">You don't have permission to access this page.</p>
       </div>
     )
   }
@@ -409,26 +434,28 @@ function ChannelSettingsPage() {
             )}
           </section>
 
-          <section className="rounded-xl border border-red-200 p-5">
-            <h2 className="text-sm font-semibold text-red-500 uppercase tracking-wider mb-4">
-              Danger Zone
-            </h2>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-700">Delete this channel</p>
-                <p className="text-xs text-gray-400">
-                  This will permanently delete the channel and all its messages.
-                </p>
+          {isAdmin && (
+            <section className="rounded-xl border border-red-200 p-5">
+              <h2 className="text-sm font-semibold text-red-500 uppercase tracking-wider mb-4">
+                Danger Zone
+              </h2>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Delete this channel</p>
+                  <p className="text-xs text-gray-400">
+                    This will permanently delete the channel and all its messages.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setDeleteChannelOpen(true)}
+                  className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+                >
+                  <Trash2 size={14} />
+                  Delete
+                </button>
               </div>
-              <button
-                onClick={() => setDeleteChannelOpen(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
-              >
-                <Trash2 size={14} />
-                Delete
-              </button>
-            </div>
-          </section>
+            </section>
+          )}
         </div>
       )}
 
@@ -657,7 +684,6 @@ function ChannelSettingsPage() {
                   </button>
                 </div>
 
-                {/* Headers for new webhook */}
                 {newWebhookHeaders.length > 0 && (
                   <div className="pl-1 space-y-2">
                     <p className="text-xs font-medium text-gray-500">Custom Headers</p>
@@ -742,8 +768,8 @@ function ChannelSettingsPage() {
         </div>
       )}
 
-      {/* User Access Tab */}
-      {activeTab === 'access' && (
+      {/* User Access Tab — admin only */}
+      {activeTab === 'access' && isAdmin && (
         <section className="rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-2 mb-4">
             <Users size={16} className="text-gray-400" />
@@ -752,8 +778,24 @@ function ChannelSettingsPage() {
             </h2>
           </div>
           <p className="text-sm text-gray-400 mb-4">
-            Manage which users can access this channel and their permission levels.
+            Manage which users can access this channel and their permission level.
           </p>
+
+          {/* Role legend */}
+          <div className="flex flex-wrap gap-2 mb-5">
+            {(['reader', 'sender', 'manager'] as const).map((role) => (
+              <div key={role} className="flex items-center gap-1.5 text-xs text-gray-500">
+                <span className={`inline-flex rounded-md border px-2 py-0.5 text-xs font-medium ${
+                  role === 'reader' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                  role === 'sender' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                  'bg-green-50 text-green-700 border-green-200'
+                }`}>
+                  {ROLE_LABELS[role]}
+                </span>
+                <span>{ROLE_DESCRIPTIONS[role]}</span>
+              </div>
+            ))}
+          </div>
 
           {permissions.length > 0 && (
             <div className="space-y-2 mb-4">
@@ -783,9 +825,9 @@ function ChannelSettingsPage() {
                         }
                         className="rounded border border-gray-200 px-2 py-1 text-xs outline-none focus:border-accent-300"
                       >
-                        <option value="read">Read</option>
-                        <option value="write">Write</option>
-                        <option value="readwrite">Read & Write</option>
+                        <option value="reader">Reader</option>
+                        <option value="sender">Sender</option>
+                        <option value="manager">Manager</option>
                       </select>
                       <button
                         onClick={() =>
@@ -806,7 +848,7 @@ function ChannelSettingsPage() {
           )}
 
           {unassignedUsers.length > 0 ? (
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <select
                 id="add-user-select"
                 defaultValue=""
@@ -821,13 +863,22 @@ function ChannelSettingsPage() {
                   </option>
                 ))}
               </select>
+              <select
+                value={newUserRole}
+                onChange={(e) => setNewUserRole(e.target.value as 'reader' | 'sender' | 'manager')}
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-accent-300 bg-white"
+              >
+                <option value="reader">Reader</option>
+                <option value="sender">Sender</option>
+                <option value="manager">Manager</option>
+              </select>
               <button
                 onClick={() => {
                   const select = document.getElementById('add-user-select') as HTMLSelectElement
                   if (select?.value) {
                     grantPermissionMutation.mutate({
                       userId: select.value,
-                      permission: 'readwrite',
+                      permission: newUserRole,
                     })
                     select.value = ''
                   }

@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { CheckCircle, XCircle } from 'lucide-react'
+import { CheckCircle, X, XCircle } from 'lucide-react'
+import { useState } from 'react'
 
 import { API_URL } from '../../../lib/api'
 import { getAccessToken } from '../../../lib/auth-client'
@@ -32,7 +33,84 @@ function truncateUrl(url: string, max = 48): string {
   return url.length > max ? url.slice(0, max) + '…' : url
 }
 
+function DetailPanel({ log, onClose }: { log: WebhookLog; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex" onClick={onClose}>
+      <div className="flex-1" />
+      <div
+        className="w-96 bg-white shadow-xl flex flex-col border-l border-gray-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <h2 className="font-semibold text-gray-800">Webhook Log Detail</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          <Field label="Status">
+            {log.status === 'success' ? (
+              <span className="flex items-center gap-1.5 text-green-600 text-sm">
+                <CheckCircle size={14} /> {log.statusCode ?? 'Success'}
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 text-red-500 text-sm">
+                <XCircle size={14} /> {log.statusCode ? `HTTP ${log.statusCode}` : 'Error'}
+              </span>
+            )}
+          </Field>
+          <Field label="Event">
+            <span className="inline-flex items-center rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-medium text-blue-700">
+              {log.event}
+            </span>
+          </Field>
+          <Field label="Triggered At">
+            <span className="text-sm text-gray-700">{new Date(log.triggeredAt).toLocaleString()}</span>
+          </Field>
+          <Field label="URL">
+            <p className="text-xs font-mono text-gray-700 break-all bg-gray-50 rounded-lg p-3">{log.url}</p>
+          </Field>
+          <Field label="Channel">
+            {log.channelName ? (
+              <div>
+                <p className="text-sm text-gray-700 font-medium">{log.channelName}</p>
+                <p className="text-xs font-mono text-gray-400">{log.channelPhone}</p>
+              </div>
+            ) : (
+              <span className="text-xs font-mono text-gray-500">{log.channelId}</span>
+            )}
+          </Field>
+          {log.webhookId && (
+            <Field label="Webhook ID">
+              <span className="text-xs font-mono text-gray-400">{log.webhookId}</span>
+            </Field>
+          )}
+          {log.error && (
+            <Field label="Error">
+              <p className="text-sm text-red-600 font-mono bg-red-50 rounded-lg p-3 break-all">{log.error}</p>
+            </Field>
+          )}
+          <Field label="Log ID">
+            <span className="text-xs font-mono text-gray-400">{log.id}</span>
+          </Field>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">{label}</p>
+      {children}
+    </div>
+  )
+}
+
 function WebhookLogsPage() {
+  const [selected, setSelected] = useState<WebhookLog | null>(null)
+
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'webhook-logs'],
     queryFn: async () => {
@@ -73,7 +151,11 @@ function WebhookLogsPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {logs.map((log) => (
-                <tr key={log.id} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  key={log.id}
+                  className="hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => setSelected(log)}
+                >
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">
                     {new Date(log.triggeredAt).toLocaleString('en-US', {
                       timeZone: 'Asia/Kathmandu',
@@ -108,20 +190,10 @@ function WebhookLogsPage() {
                         <span className="text-xs">{log.statusCode ?? 'OK'}</span>
                       </span>
                     ) : (
-                      <div>
-                        <span className="flex items-center gap-1 text-red-500">
-                          <XCircle size={14} />
-                          <span className="text-xs">{log.statusCode ? `HTTP ${log.statusCode}` : 'Error'}</span>
-                        </span>
-                        {log.error && (
-                          <p
-                            className="mt-0.5 text-xs text-red-400 font-mono max-w-xs truncate"
-                            title={log.error}
-                          >
-                            {log.error}
-                          </p>
-                        )}
-                      </div>
+                      <span className="flex items-center gap-1 text-red-500">
+                        <XCircle size={14} />
+                        <span className="text-xs">{log.statusCode ? `HTTP ${log.statusCode}` : 'Error'}</span>
+                      </span>
                     )}
                   </td>
                 </tr>
@@ -130,6 +202,8 @@ function WebhookLogsPage() {
           </table>
         </div>
       )}
+
+      {selected && <DetailPanel log={selected} onClose={() => setSelected(null)} />}
     </div>
   )
 }

@@ -44,7 +44,9 @@ function UsersPage() {
   const users = data?.users ?? []
 
   const permissionLabel = (p: string) => {
-    if (p === 'readwrite') return 'Read & Write'
+    if (p === 'reader' || p === 'read') return 'Reader'
+    if (p === 'sender' || p === 'write') return 'Sender'
+    if (p === 'manager' || p === 'readwrite') return 'Manager'
     return p.charAt(0).toUpperCase() + p.slice(1)
   }
 

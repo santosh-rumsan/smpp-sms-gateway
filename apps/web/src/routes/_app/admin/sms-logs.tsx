@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowDownLeft, ArrowUpRight } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, X } from 'lucide-react'
+import { useState } from 'react'
 
 import { API_URL } from '../../../lib/api'
 import { getAccessToken } from '../../../lib/auth-client'
@@ -35,7 +36,82 @@ const STATUS_STYLES: Record<string, string> = {
   failed: 'bg-red-50 text-red-600 border-red-200',
 }
 
+function DetailPanel({ log, onClose }: { log: SmsLog; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex" onClick={onClose}>
+      <div className="flex-1" />
+      <div
+        className="w-96 bg-white shadow-xl flex flex-col border-l border-gray-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <h2 className="font-semibold text-gray-800">SMS Log Detail</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          <Field label="Direction">
+            {log.direction === 'inbound' ? (
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-medium text-blue-700">
+                <ArrowDownLeft size={11} /> Inbound
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-purple-50 border border-purple-200 px-2 py-0.5 text-xs font-medium text-purple-700">
+                <ArrowUpRight size={11} /> Outbound
+              </span>
+            )}
+          </Field>
+          <Field label="Status">
+            <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium capitalize ${STATUS_STYLES[log.status] ?? 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+              {log.status}
+            </span>
+          </Field>
+          <Field label="Created At">
+            <span className="text-sm text-gray-700">{new Date(log.createdAt).toLocaleString()}</span>
+          </Field>
+          <Field label="Contact Number">
+            <span className="text-sm font-mono text-gray-700">{log.contactNumber}</span>
+          </Field>
+          <Field label="Channel">
+            {log.channelName ? (
+              <div>
+                <p className="text-sm font-medium text-gray-700">{log.channelName}</p>
+                <p className="text-xs font-mono text-gray-400">{log.channelPhone}</p>
+              </div>
+            ) : (
+              <span className="text-xs font-mono text-gray-500">{log.channelId}</span>
+            )}
+          </Field>
+          <Field label="Message">
+            <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3 whitespace-pre-wrap leading-relaxed">{log.content}</p>
+          </Field>
+          {log.statusDetail && (
+            <Field label="Status Detail">
+              <p className="text-sm text-red-600 font-mono bg-red-50 rounded-lg p-3 break-all">{log.statusDetail}</p>
+            </Field>
+          )}
+          <Field label="Log ID">
+            <span className="text-xs font-mono text-gray-400">{log.id}</span>
+          </Field>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">{label}</p>
+      {children}
+    </div>
+  )
+}
+
 function SmsLogsPage() {
+  const [selected, setSelected] = useState<SmsLog | null>(null)
+
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'sms-logs'],
     queryFn: async () => {
@@ -77,7 +153,11 @@ function SmsLogsPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {logs.map((log) => (
-                <tr key={log.id} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  key={log.id}
+                  className="hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => setSelected(log)}
+                >
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">
                     {new Date(log.createdAt).toLocaleString('en-US', {
                       timeZone: 'Asia/Kathmandu',
@@ -114,14 +194,6 @@ function SmsLogsPage() {
                     >
                       {log.status}
                     </span>
-                    {log.status === 'failed' && log.statusDetail && (
-                      <p
-                        className="mt-0.5 text-xs text-red-400 font-mono max-w-xs truncate"
-                        title={log.statusDetail}
-                      >
-                        {log.statusDetail}
-                      </p>
-                    )}
                   </td>
                 </tr>
               ))}
@@ -129,6 +201,8 @@ function SmsLogsPage() {
           </table>
         </div>
       )}
+
+      {selected && <DetailPanel log={selected} onClose={() => setSelected(null)} />}
     </div>
   )
 }

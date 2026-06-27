@@ -17,7 +17,7 @@ export const channelPermissions = sqliteTable(
       .references(() => channels.id, { onDelete: "cascade" }),
     userId: text("user_id").notNull(),
     permission: text("permission", {
-      enum: ["read", "write", "readwrite"],
+      enum: ["reader", "sender", "manager", "read", "write", "readwrite"],
     }).notNull(),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
