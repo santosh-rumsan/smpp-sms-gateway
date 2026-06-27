@@ -8,7 +8,7 @@ import { addEmailForwardSchema, addWebhookSchema, setChannelPermissionSchema, up
 import type { HonoEnv } from '../types'
 import { createId } from '../lib/cuid2'
 import { requireAuth, requireAdmin } from '../middleware/auth'
-import { requireChannelPermission } from '../middleware/channel'
+import { requireAdminOrChannelManager, requireChannelPermission } from '../middleware/channel'
 
 export const channelsRouter = new Hono<HonoEnv>()
 
@@ -78,7 +78,7 @@ channelsRouter.get('/:channelId', requireChannelPermission('read'), async (c) =>
   return c.json({ channel, messageCount: stats?.count ?? 0, permission })
 })
 
-channelsRouter.put('/:channelId', requireAdmin, zValidator('json', updateChannelSchema), async (c) => {
+channelsRouter.put('/:channelId', requireAdminOrChannelManager(), zValidator('json', updateChannelSchema), async (c) => {
   const db = c.var.db
   const channelId = c.req.param('channelId')!
   const data = c.req.valid('json')
@@ -120,7 +120,7 @@ channelsRouter.delete('/:channelId', requireAdmin, async (c) => {
 
 // ── Email Forwards ──────────────────────────────────────────────────────────
 
-channelsRouter.get('/:channelId/email-forwards', requireAdmin, async (c) => {
+channelsRouter.get('/:channelId/email-forwards', requireAdminOrChannelManager(), async (c) => {
   const db = c.var.db
   const channelId = c.req.param('channelId')!
 
@@ -134,7 +134,7 @@ channelsRouter.get('/:channelId/email-forwards', requireAdmin, async (c) => {
 
 channelsRouter.post(
   '/:channelId/email-forwards',
-  requireAdmin,
+  requireAdminOrChannelManager(),
   zValidator('json', addEmailForwardSchema),
   async (c) => {
     const db = c.var.db
@@ -171,7 +171,7 @@ channelsRouter.post(
   },
 )
 
-channelsRouter.delete('/:channelId/email-forwards/:forwardId', requireAdmin, async (c) => {
+channelsRouter.delete('/:channelId/email-forwards/:forwardId', requireAdminOrChannelManager(), async (c) => {
   const db = c.var.db
   const forwardId = c.req.param('forwardId')!
 
@@ -182,7 +182,7 @@ channelsRouter.delete('/:channelId/email-forwards/:forwardId', requireAdmin, asy
 
 // ── Webhooks ───────────────────────────────────────────────────────────────
 
-channelsRouter.get('/:channelId/webhooks', requireAdmin, async (c) => {
+channelsRouter.get('/:channelId/webhooks', requireAdminOrChannelManager(), async (c) => {
   const db = c.var.db
   const channelId = c.req.param('channelId')!
 
@@ -196,7 +196,7 @@ channelsRouter.get('/:channelId/webhooks', requireAdmin, async (c) => {
 
 channelsRouter.post(
   '/:channelId/webhooks',
-  requireAdmin,
+  requireAdminOrChannelManager(),
   zValidator('json', addWebhookSchema),
   async (c) => {
     const db = c.var.db
@@ -243,7 +243,7 @@ channelsRouter.post(
 
 channelsRouter.put(
   '/:channelId/webhooks/:webhookId',
-  requireAdmin,
+  requireAdminOrChannelManager(),
   zValidator('json', updateWebhookSchema),
   async (c) => {
     const db = c.var.db
@@ -270,7 +270,7 @@ channelsRouter.put(
   },
 )
 
-channelsRouter.delete('/:channelId/webhooks/:webhookId', requireAdmin, async (c) => {
+channelsRouter.delete('/:channelId/webhooks/:webhookId', requireAdminOrChannelManager(), async (c) => {
   const db = c.var.db
   const webhookId = c.req.param('webhookId')!
 

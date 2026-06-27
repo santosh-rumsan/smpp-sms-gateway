@@ -93,7 +93,7 @@ function AppLayout() {
     { icon: <MessageSquare size={18} />, to: '/channels' as const },
     { icon: <BookUser size={18} />, to: '/contacts' as const },
     ...(isAdmin ? [{ icon: <Shield size={18} />, to: '/admin' as const }] : []),
-    { icon: <BookOpen size={18} />, href: '/docs/' },
+    { icon: <BookOpen size={18} />, to: '/docs' as const },
   ]
 
   const mobileNavItems: MobileNavItem[] = [

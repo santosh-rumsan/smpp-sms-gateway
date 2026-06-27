@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from 'drizzle-orm'
+import { and, count, desc, eq, inArray } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 
@@ -282,6 +282,9 @@ adminRouter.post(
     const id = createId()
     const now = new Date()
 
+    const [existing] = await db.select({ count: count() }).from(emailTransports)
+    const isFirst = (existing?.count ?? 0) === 0
+
     await db.insert(emailTransports).values({
       id,
       name: data.name,
@@ -291,6 +294,13 @@ adminRouter.post(
       createdAt: now,
       updatedAt: now,
     })
+
+    if (isFirst) {
+      await db
+        .update(emailTransports)
+        .set({ isActive: true, updatedAt: new Date() })
+        .where(eq(emailTransports.id, id))
+    }
 
     const transport = await db.query.emailTransports.findFirst({
       where: eq(emailTransports.id, id),
@@ -479,6 +489,17 @@ adminRouter.get('/sms-queue', async (c) => {
     .where(eq(messages.status, 'queued'))
     .orderBy(desc(messages.createdAt))
   return c.json({ messages: queued })
+})
+
+adminRouter.delete('/sms-queue/:messageId', async (c) => {
+  const db = c.var.db
+  const messageId = c.req.param('messageId')!
+
+  await db
+    .delete(messages)
+    .where(and(eq(messages.id, messageId), eq(messages.status, 'queued')))
+
+  return c.json({ ok: true })
 })
 
 // ── API Keys ─────────────────────────────────────────────────────────────────

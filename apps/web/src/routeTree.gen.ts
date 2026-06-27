@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
+import { Route as AppDocsRouteImport } from './routes/_app/docs'
 import { Route as AppAdminRouteImport } from './routes/_app/admin'
 import { Route as AppContactsIndexRouteImport } from './routes/_app/contacts/index'
 import { Route as AppChannelsIndexRouteImport } from './routes/_app/channels/index'
@@ -53,6 +54,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDocsRoute = AppDocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAdminRoute = AppAdminRouteImport.update({
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/setup': typeof SetupRoute
   '/admin': typeof AppAdminRouteWithChildren
+  '/docs': typeof AppDocsRoute
   '/profile': typeof AppProfileRoute
   '/admin/api-keys': typeof AppAdminApiKeysRoute
   '/admin/connection-logs': typeof AppAdminConnectionLogsRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/setup': typeof SetupRoute
+  '/docs': typeof AppDocsRoute
   '/profile': typeof AppProfileRoute
   '/admin/api-keys': typeof AppAdminApiKeysRoute
   '/admin/connection-logs': typeof AppAdminConnectionLogsRoute
@@ -189,6 +197,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/setup': typeof SetupRoute
   '/_app/admin': typeof AppAdminRouteWithChildren
+  '/_app/docs': typeof AppDocsRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/admin/api-keys': typeof AppAdminApiKeysRoute
   '/_app/admin/connection-logs': typeof AppAdminConnectionLogsRoute
@@ -213,6 +222,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/setup'
     | '/admin'
+    | '/docs'
     | '/profile'
     | '/admin/api-keys'
     | '/admin/connection-logs'
@@ -234,6 +244,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/setup'
+    | '/docs'
     | '/profile'
     | '/admin/api-keys'
     | '/admin/connection-logs'
@@ -257,6 +268,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/setup'
     | '/_app/admin'
+    | '/_app/docs'
     | '/_app/profile'
     | '/_app/admin/api-keys'
     | '/_app/admin/connection-logs'
@@ -317,6 +329,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/docs': {
+      id: '/_app/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof AppDocsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/admin': {
@@ -466,6 +485,7 @@ const AppAdminRouteWithChildren = AppAdminRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRouteWithChildren
+  AppDocsRoute: typeof AppDocsRoute
   AppProfileRoute: typeof AppProfileRoute
   AppChannelsIndexRoute: typeof AppChannelsIndexRoute
   AppContactsIndexRoute: typeof AppContactsIndexRoute
@@ -476,6 +496,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRouteWithChildren,
+  AppDocsRoute: AppDocsRoute,
   AppProfileRoute: AppProfileRoute,
   AppChannelsIndexRoute: AppChannelsIndexRoute,
   AppContactsIndexRoute: AppContactsIndexRoute,

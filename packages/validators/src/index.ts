@@ -57,12 +57,12 @@ export const listConversationsSchema = z.object({
 
 export const setPermissionSchema = z.object({
   channelId: z.string().min(1, "Channel is required"),
-  permission: z.enum(["read", "write", "readwrite"]),
+  permission: z.enum(["reader", "sender", "manager"]),
 });
 
 export const setChannelPermissionSchema = z.object({
   userId: z.string().min(1, "User is required"),
-  permission: z.enum(["read", "write", "readwrite"]),
+  permission: z.enum(["reader", "sender", "manager"]),
 });
 
 // ── Settings validators ──────────────────────────────────────────────────────

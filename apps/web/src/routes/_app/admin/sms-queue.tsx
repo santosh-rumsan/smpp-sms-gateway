@@ -1,9 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
-import { Clock } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Clock, Trash2 } from 'lucide-react'
+import { useState } from 'react'
 
 import { API_URL } from '../../../lib/api'
 import { getAccessToken } from '../../../lib/auth-client'
+import { ConfirmDialog } from '../../../components/confirm-dialog'
 
 export const Route = createFileRoute('/_app/admin/sms-queue')({
   component: SmsQueuePage,
@@ -25,6 +27,9 @@ function authHeaders(): Record<string, string> {
 }
 
 function SmsQueuePage() {
+  const queryClient = useQueryClient()
+  const [deleteTarget, setDeleteTarget] = useState<QueuedMessage | null>(null)
+
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'sms-queue'],
     queryFn: async () => {
@@ -34,6 +39,20 @@ function SmsQueuePage() {
       return res.json() as Promise<{ messages: QueuedMessage[] }>
     },
     refetchInterval: 5_000,
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`${API_URL}/admin/sms-queue/${id}`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      })
+      if (!res.ok) throw new Error('Failed to delete message')
+    },
+    onSuccess: () => {
+      setDeleteTarget(null)
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'sms-queue'] })
+    },
   })
 
   const queued = data?.messages ?? []
@@ -69,6 +88,7 @@ function SmsQueuePage() {
                   <th className="px-4 py-3">Channel</th>
                   <th className="px-4 py-3">To</th>
                   <th className="px-4 py-3">Message</th>
+                  <th className="px-4 py-3 w-10"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -94,6 +114,15 @@ function SmsQueuePage() {
                     <td className="px-4 py-3 text-gray-600 text-xs max-w-sm truncate" title={msg.content}>
                       {msg.content}
                     </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => setDeleteTarget(msg)}
+                        className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Remove from queue"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -101,6 +130,15 @@ function SmsQueuePage() {
           </div>
         </>
       )}
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="Remove from queue"
+        description={`Remove this queued message to "${deleteTarget?.contactNumber ?? ''}"? It will not be sent.`}
+        confirmLabel="Remove"
+        onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }
