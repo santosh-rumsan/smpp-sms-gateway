@@ -88,6 +88,28 @@ adminRouter.put('/devices/:deviceId', zValidator('json', updateDeviceSchema), as
   return c.json({ device: updated })
 })
 
+adminRouter.post('/devices/:deviceId/activate', async (c) => {
+  const db = c.var.db
+  const deviceId = c.req.param('deviceId')!
+
+  const existing = await db.query.devices.findFirst({ where: eq(devices.id, deviceId) })
+  if (!existing) return c.json({ error: 'Device not found' }, 404)
+
+  await db.update(devices).set({ isActive: true, updatedAt: new Date() }).where(eq(devices.id, deviceId))
+  return c.json({ ok: true })
+})
+
+adminRouter.post('/devices/:deviceId/deactivate', async (c) => {
+  const db = c.var.db
+  const deviceId = c.req.param('deviceId')!
+
+  const existing = await db.query.devices.findFirst({ where: eq(devices.id, deviceId) })
+  if (!existing) return c.json({ error: 'Device not found' }, 404)
+
+  await db.update(devices).set({ isActive: false, updatedAt: new Date() }).where(eq(devices.id, deviceId))
+  return c.json({ ok: true })
+})
+
 adminRouter.delete('/devices/:deviceId', async (c) => {
   const db = c.var.db
   const deviceId = c.req.param('deviceId')!

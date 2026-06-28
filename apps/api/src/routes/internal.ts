@@ -1,4 +1,4 @@
-import { and, eq, lte } from 'drizzle-orm'
+import { and, asc, eq, isNull, lte, or } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 
@@ -280,25 +280,34 @@ internalRouter.get('/messages/pending', async (c) => {
   })
   const delaySecs = delaySetting ? (parseInt(delaySetting.value, 10) || 0) : 0
 
-  const whereCondition = delaySecs > 0
+  const baseCondition = delaySecs > 0
     ? and(eq(messages.status, 'queued'), lte(messages.createdAt, new Date(Date.now() - delaySecs * 1000)))
     : eq(messages.status, 'queued')
 
-  const pending = await db.query.messages.findMany({
-    where: whereCondition,
-    with: { channel: true },
-    orderBy: (m, { asc }) => [asc(m.createdAt)],
-    limit: 50,
-  })
+  const pending = await db
+    .select({
+      id: messages.id,
+      channelId: messages.channelId,
+      contactNumber: messages.contactNumber,
+      content: messages.content,
+      channelPhone: channels.phoneNumber,
+      deviceId: channels.deviceId,
+    })
+    .from(messages)
+    .innerJoin(channels, eq(messages.channelId, channels.id))
+    .leftJoin(devices, eq(channels.deviceId, devices.id))
+    .where(and(baseCondition, or(isNull(channels.deviceId), eq(devices.isActive, true))))
+    .orderBy(asc(messages.createdAt))
+    .limit(50)
 
   return c.json({
     messages: pending.map((m) => ({
       id: m.id,
       channelId: m.channelId,
-      sourceAddr: m.channel.phoneNumber,
+      sourceAddr: m.channelPhone,
       destinationAddr: m.contactNumber,
       content: m.content,
-      deviceId: m.channel.deviceId,
+      deviceId: m.deviceId,
     })),
   })
 })

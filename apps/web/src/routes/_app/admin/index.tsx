@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Settings, Trash2 } from 'lucide-react'
+import { Plus, Power, Settings, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 import { API_URL } from '../../../lib/api'
@@ -84,6 +84,19 @@ function DevicesPage() {
     },
   })
 
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ deviceId, activate }: { deviceId: string; activate: boolean }) => {
+      const token = getAccessToken()
+      await fetch(`${API_URL}/admin/devices/${deviceId}/${activate ? 'activate' : 'deactivate'}`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'devices'] })
+    },
+  })
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -127,21 +140,34 @@ function DevicesPage() {
       ) : (
         <div className="space-y-3">
           {(data?.devices ?? []).map((device) => (
-            <div key={device.id} className="rounded-xl border border-gray-200 p-5">
+            <div key={device.id} className={`rounded-xl border p-5 ${device.isActive ? 'border-gray-200' : 'border-gray-100 bg-gray-50/50'}`}>
               <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold">{device.name}</h3>
-                  <p className="text-sm text-gray-500">
-                    {device.smppHost}:{device.smppPort} (ID: {device.smppSystemId})
-                    {device.countryCode && <span className="ml-2 text-xs text-gray-400">Country: {device.countryCode}</span>}
-                  </p>
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className={`inline-block h-2 w-2 rounded-full flex-shrink-0 ${device.isActive ? 'bg-green-400' : 'bg-gray-300'}`} />
+                  <div className="min-w-0">
+                    <h3 className={`font-semibold ${!device.isActive ? 'text-gray-400' : ''}`}>{device.name}</h3>
+                    <p className="text-sm text-gray-500">
+                      {device.smppHost}:{device.smppPort} (ID: {device.smppSystemId})
+                      {device.countryCode && <span className="ml-2 text-xs text-gray-400">Country: {device.countryCode}</span>}
+                    </p>
+                  </div>
                 </div>
-                <button
-                  onClick={() => setDeleteTarget(device.id)}
-                  className="p-2 text-gray-400 hover:text-red-500"
-                >
-                  <Trash2 size={16} />
-                </button>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => toggleActiveMutation.mutate({ deviceId: device.id, activate: !device.isActive })}
+                    disabled={toggleActiveMutation.isPending}
+                    title={device.isActive ? 'Deactivate device' : 'Activate device'}
+                    className={`p-2 transition-colors ${device.isActive ? 'text-green-500 hover:text-gray-400' : 'text-gray-300 hover:text-green-500'}`}
+                  >
+                    <Power size={16} />
+                  </button>
+                  <button
+                    onClick={() => setDeleteTarget(device.id)}
+                    className="p-2 text-gray-400 hover:text-red-500"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
 
               <div className="mt-3 border-t border-gray-100 pt-3">
