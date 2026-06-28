@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Power, Settings, Trash2 } from 'lucide-react'
+import { Plus, Settings, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 import { API_URL } from '../../../lib/api'
@@ -152,20 +152,29 @@ function DevicesPage() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     onClick={() => toggleActiveMutation.mutate({ deviceId: device.id, activate: !device.isActive })}
                     disabled={toggleActiveMutation.isPending}
-                    title={device.isActive ? 'Deactivate device' : 'Activate device'}
-                    className={`p-2 transition-colors ${device.isActive ? 'text-green-500 hover:text-gray-400' : 'text-gray-300 hover:text-green-500'}`}
+                    style={{ backgroundColor: device.isActive ? '#22c55e' : '#ef4444' }}
+                    className="relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out disabled:opacity-50"
+                    role="switch"
+                    aria-checked={device.isActive}
+                    title={device.isActive ? 'Deactivate' : 'Activate'}
                   >
-                    <Power size={16} />
+                    <span
+                      className="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-in-out"
+                      style={{
+                        marginTop: '4px',
+                        transform: device.isActive ? 'translateX(22px)' : 'translateX(4px)',
+                      }}
+                    />
                   </button>
                   <button
                     onClick={() => setDeleteTarget(device.id)}
-                    className="p-2 text-gray-400 hover:text-red-500"
+                    className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={14} />
                   </button>
                 </div>
               </div>
